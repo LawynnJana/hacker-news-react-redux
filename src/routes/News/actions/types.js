@@ -1,0 +1,5 @@
+export const FETCH_POSTS = 'FETCH_POSTS'
+export const FETCH_ITEMS = 'FETCH_ITEMS'
+export const FETCH_ITEMS_ON_PAGE = 'FETCH_ITEMS_ON_PAGE'
+export const FETCH_ARTICLE = 'FETCH_ARTICLE'
+export const FETCH_COMMENTS = 'FETCH_COMMENTS'
