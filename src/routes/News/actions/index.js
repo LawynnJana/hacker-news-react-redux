@@ -25,60 +25,117 @@ const itemsCache = Object.create(null)
 //POST LIST
 export function fetchPosts(){
   console.log('FetchPosts @ News/actions/index.js')
+
   return (dispatch) => {
-    Posts.child('topstories').on('value', snapshot => {
-      dispatch({
-        type: FETCH_POSTS,
-        payload: snapshot.val(),
+    return new Promise((resolve, rej)=>{
+      Posts.child('topstories').on('value', snapshot => {
+        console.log('dank')
+
+        fetchIds(snapshot.val()).then(data => {
+          console.log('DATA: ' + data)
+          dispatch({
+            type: FETCH_POSTS,
+            payload: data
+          })
+          resolve('Resolving')
+        })
+
       })
-      //dispatch(fetchItems(1))
     })
-
   }
-
 }
 
 
 let tempData = [];
 
-export function fetchItems(page){
+export function fetchPostsOnPage(page){
+
   const storiesPerPage = 20
   const start = (page-1)*storiesPerPage
   const end = (page)*storiesPerPage
 
   return dispatch => {
-    Posts.child('topstories').once('value', snapshot => {
-      //console.log('FETCH_ITEMS')
-      tempData = [...snapshot.val()].slice(start, end);
-      console.log(tempData)
-      const data = fetchIds(tempData)
-      dispatch({
-        type: FETCH_ITEMS,
-        payload: data
+    return new Promise((resolve, reject) => {
+      Posts.child('topstories').once('value', snapshot => {
+        console.log('FETCH_ITEMS in promise =>')
+        tempData = [...snapshot.val()].slice(start, end);
+        console.log(tempData)
+        const data = fetchIds(tempData)
+        dispatch({
+          type: FETCH_ITEMS,
+          payload: data
+        })
       })
-    })
+
+    });
+    // Posts.child('topstories').once('value', snapshot => {
+    //   //console.log('FETCH_ITEMS')
+    //   tempData = [...snapshot.val()].slice(start, end);
+    //   console.log(tempData)
+    //   const data = fetchIds(tempData)
+    //   dispatch({
+    //     type: FETCH_ITEMS,
+    //     payload: data
+    //   })
+    // })
   }
 }
 
-function fetchIds(ids){
-  if (!ids || !ids.length) {
-    return []
-  } else {
-    return ids.map(id => fetchItem(id))
-  }
+//NewsPost
+export function fetchIds(ids){
+//  console.log('Comment ids: ' + ids)
+  //return dispatch => {
+    let data = []
+    if (!ids || !ids.length) {
+      data = []
+
+    } else {
+      console.log('gang shit')
+      return Promise.all(ids.map(id => fetchPostItem(id)))
+      // .then((data)=>{
+      //   console.log('Data Within Promise:' + data)
+      //   dispatch({
+      //     type: FETCH_POSTS,
+      //     payload: data
+      //   })
+      // })
+    }
+//  }
 }
 
-function fetchItem(id){
-  if (itemsCache[id]) {
-    //console.log('ItemsCache:' + itemsCache[id])
-    return itemsCache[id]
-   } else {
-     Posts.child('item/' + id).on('value', snapshot => {
-       const story = itemsCache[id] = snapshot.val()
-       return story
-     })
-   }
+// function fetchIds(ids){
+//   if (!ids || !ids.length) {
+//     return []
+//   } else {
+//     return ids.map(id => fetchItem(id))
+//   }
+// }
+
+function fetchPostItem(id){
+  return new Promise((resolve, reject) => {
+    if (itemsCache[id]) {
+      resolve(itemsCache[id])
+     } else {
+       Posts.child('item/' + id).once('value', snapshot => {
+         const story = itemsCache[id] = snapshot.val()
+         //console.log(story.text)
+         resolve(story)
+       }, reject)
+     }
+   })
  }
+
+// function fetchPostItem(id){
+//   if (itemsCache[id]) {
+//     //console.log('ItemsCache:' + itemsCache[id])
+//     return itemsCache[id]
+//    } else {
+//      Posts.child('item/' + id).on('value', snapshot => {
+//        const story = itemsCache[id] = snapshot.val()
+//        return story
+//      })
+//    }
+//  }
 //END OF POST LIST
 
 
@@ -92,7 +149,6 @@ export function fetchComments(ids){
       data = []
 
     } else {
-      //_.maps(ids, (id) => fetchCommentItem(id))
 
     return Promise.all(ids.map(id => fetchCommentItem(id))).then((data)=>{
         //console.log('Data Within Promise:' + data)
@@ -101,19 +157,7 @@ export function fetchComments(ids){
           payload: data
         })
       })
-      // Promise.all.(ids.map(id => fetchCommentItem(id))).then(data => {
-      //   dispatch({
-      //     type: FETCH_COMMENTS,
-      //     payload: data
-      //   })
-      // })
-      //console.log('datataa:' + data)
     }
-
-    //dispatch({
-      //type: FETCH_COMMENTS,
-      //payload: data
-    //})
   }
 }
 
@@ -132,17 +176,3 @@ function fetchCommentItem(id){
      }
    })
  }
-//
-// function fetchCommentItem(id){
-//   console.log('FETCHCOMMENTITEM')
-//   if (commentsCache[id]) {
-//     //console.log('ItemsCache:' + itemsCache[id])
-//     return commentsCache[id]
-//    } else {
-//      Posts.child('item/' + id).on('value', snapshot => {
-//        const story = commentsCache[id] = snapshot.val()
-//        console.log(story.text)
-//        return story
-//      })
-//    }
-//  }

@@ -18,19 +18,23 @@ class NewsPost extends React.Component {
     }
   }
 
+
+  //fetching comments async
   componentWillMount(){
     let articleId = this.props.routeParams.id
 
     if(!Number(articleId)){
       console.log('ERROR IN NEWS POST ID NOT A NUMBER')
     }
-
+    console.log('NewsPost: ' + this.props.routeParams.id)
     articleId = Number(this.props.routeParams.id)
 
-    tempPost = _.find(this.props.postsOnPage, function(article){
+    tempPost = _.find(this.props.posts, function(article){
+      console.log(article.id)
       return article.id === articleId
     })
     console.log('Post Identification:' + tempPost)
+
     this.props.fetchComments(tempPost.kids).then(()=>{
       console.log('Got comments!')
       this.setState({
@@ -64,7 +68,7 @@ class NewsPost extends React.Component {
 
     articleId = Number(this.props.routeParams.id)
 
-    return _.map(this.props.postsOnPage, (post, key) => {
+    return _.map(this.props.posts, (post, key) => {
       //Using url's params ID path, get the required article
       if(post.id === articleId) {
 
